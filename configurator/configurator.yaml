@@ -1,0 +1,9 @@
+- host: master
+  box: 'centos/7'
+  pri_ip: '192.168.33.100'
+  memory: '1024'
+  cpu_num: '1'
+  script:
+    - cat /vagrant/key_value > /home/vagrant/.ssh/authorized_keys
+    - yum install -y nano
+

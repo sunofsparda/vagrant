@@ -1,0 +1,38 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+class ConfigData
+    def self.yaml_config
+      require 'yaml'
+      YAML.load_file('configurator.yaml')
+    end
+end
+
+  configurator = ConfigData.yaml_config
+    Vagrant.configure("2") do |config|
+      puts "#{configurator.count} hosts configured in Vagrantfile"
+      configurator.each do |val|
+        config.vm.define val['host'] do |host|
+            type = val['host']
+            host.vm.box = val['box']
+            #Unlock it if you use Vagrant for Windows OS
+            #host.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+            host.vm.hostname = type
+            host.vm.network "private_network", ip: val['pri_ip'] if val['pri_ip']
+            scr = val['script']
+            if scr
+              scr.each do |va|
+                host.vm.provision 'shell', inline:
+                <<-SHELL
+                #{va}
+                SHELL
+              end
+            end
+
+            host.vm.provider "virtualbox" do |vb|
+                vb.memory = val['memory'] if val['memory']
+                vb.cpus = val['cpus_num'] if val['cpu_num']
+            end
+        end
+    end
+end

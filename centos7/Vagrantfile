@@ -1,0 +1,49 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  # http://www.thisprogrammingthing.com/2015/multiple-vagrant-vms-in-one-vagrantfile/
+
+    config.vm.define "deb10w" do |config|
+      config.vm.box = "generic/debian10"
+      config.vm.hostname = "deb10w"
+      # config.vm.network "forwarded_port", guest: 80, host: 10080
+      # config.vm.network "public_network"
+      config.vm.network "private_network", type: "dhcp"
+      config.vm.provider :virtualbox do |vb|
+        vb.memory = "4096"
+        # vb.gui = true
+        # vb.customize ["modifyvm", :id, "--vram", "128"]
+        vb.customize ["modifyvm", :id,  "--cpus", "2"]
+        vb.customize ['modifyvm', :id, '--clipboard', 'bidirectional']
+        # vb.customize ["modifyvm", :id, "--usb", "on"]
+        # vb.customize ["modifyvm", :id, "--draganddrop", "bidirectional"]
+        # vb.customize ["modifyvm", :id, "--ioapic", "on"]
+        # vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+        # vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+        # vb.customize ["guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 10000]
+        # vb.customize ["modifyvm", :id, "--usbxhci", "on"]
+      end
+      # workbox.vm.provision "shell", path: "script.sh"
+    end
+
+    # config.vm.synced_folder "E:/workspace/", "/home/vagrant/workspace/"
+
+    config.vm.provision "shell", inline: <<-SHELL
+      timedatectl set-timezone Europe/Minsk
+      # apt update -y
+      # apt upgrade -y
+      # apt install -y dkms linux-headers-$(uname -r) build-essential git curl wget
+      apt install -y git curl wget python3
+
+      curl -fsSL https://get.docker.com -o get-docker.sh
+      sh get-docker.sh
+      usermod -aG docker vagrant
+
+      rm -rf /tmp/*
+      cd /home/vagrant && git clone https://github.com/sunofsparda/ansible.git
+      # docker run --rm -t -v $(pwd):/ansible -v $(pwd)/ansible.cfg:/etc/ansible/ansible.cfg --entrypoint ansible-galaxy acherlyonok/ansible:latest install --force -r /ansible/requirements.yml
+      # docker run --rm -it -v /root/.ssh/:/root/.ssh/:ro -v $(pwd):/ansible acherlyonok/ansible:latest -i /ansible/hosts.yml /ansible/main.yml -e "ansible_user=vagrant"
+      SHELL
+  end
